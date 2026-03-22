@@ -145,26 +145,26 @@ $(document).ready(function () {
 
    // 8. AJAX/JSON Submission
    $('#checkoutBtn').on('click', function () {
-      if (cart.length === 0) {
-         alert("Cart is empty!");
-         return;
-      }
-
-      const jsonData = JSON.stringify(cart);
-      console.log("JSON Payload:", jsonData);
-
-      // Simulation of the AJAX transport requirement
-      $.ajax({
-         url: 'https://jsonplaceholder.typicode.com/posts',
-         type: 'POST',
-         data: jsonData,
-         contentType: 'application/json',
-         success: function () {
-            alert("Orders sent successfully");
-         },
-         error: function() {
-            alert("API not implemented yet (simulation)");
-         }
-      });
+       if (cart.length === 0) {
+           alert("Your cart is empty!");
+           return;
+       }
+   
+       const cartData = JSON.stringify(cart);
+   
+       localStorage.setItem('basketball_club_order', cartData);
+   
+       $.ajax({
+           url: 'https://jsonplaceholder.typicode.com/posts',
+           type: 'POST',
+           contentType: 'application/json',
+           data: cartData,
+           success: function () {
+               window.location.href = 'finalization.html';
+           },
+           error: function() {
+               window.location.href = 'finalization.html';
+           }
+       });
    });
 });
