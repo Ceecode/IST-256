@@ -38,7 +38,7 @@ function FinalizationApp() {
             deliveryOption: deliveryCost === 5.00 ? "Same-Day" : deliveryCost === 2.50 ? "2-3 Day" : "4-6 Day"
         });
 
-        // AJAX transport to RESTful service (simulation)
+       // AJAX transport to RESTful service
         $.ajax({
             url: 'https://jsonplaceholder.typicode.com/posts',
             type: 'POST',
@@ -46,8 +46,12 @@ function FinalizationApp() {
             data: finalPayload,
             success: (response) => {
                 console.log("JSON Sent Successfully:", response);
-                setOrderStatus('success');
-                localStorage.removeItem('basketball_club_order'); 
+                
+                // SAVE final data for the Billing Page to use
+                localStorage.setItem('final_order_payload', finalPayload);
+                
+                // Redirect to Billing Page
+                window.location.href = "billing.html";
             },
             error: () => alert("Transmission Error")
         });
