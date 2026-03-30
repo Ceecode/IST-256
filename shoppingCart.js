@@ -1,19 +1,30 @@
 $(document).ready(function () {
-   let products = [];
-   let cart = [];
-   let editMode = false;
-   let editId = null;
-
-   // 1. Initial Data (The 3 required options for your storefront)
-   products = [
+   // --- SYNC LOGIC START ---
+   // 1. Load from localStorage OR use the 3 defaults if empty
+   let savedInventory = localStorage.getItem('global_inventory');
+   
+   let products = savedInventory ? JSON.parse(savedInventory) : [
       { productId: "B001", description: "Official Game Ball", category: "Equipment", unit: "Each", price: 59.99 },
       { productId: "J002", description: "Team Logo Jersey", category: "Apparel", unit: "Each", price: 45.00 },
       { productId: "T003", description: "Training Cones (Set of 10)", category: "Training", unit: "Set", price: 25.50 }
    ];
 
+   // Helper to keep Returns page and Cart page in sync
+   function syncGlobalInventory() {
+      localStorage.setItem('global_inventory', JSON.stringify(products));
+   }
+
+   // Ensure the bridge is built on first load
+   syncGlobalInventory();
+   // --- SYNC LOGIC END ---
+
+   let cart = [];
+   let editMode = false;
+   let editId = null;
+
    renderProducts(products);
 
-   // 2. Render Inventory Table (With 3 separate buttons)
+   // 2. Render Inventory Table
    function renderProducts(items) {
       const $tableBody = $('#productTable');
       $tableBody.empty();
@@ -42,7 +53,6 @@ $(document).ready(function () {
 
       const priceValue = parseFloat($('#price').val());
 
-      // Validation/Integrity Check
       if (isNaN(priceValue) || priceValue < 0) {
          alert("Please enter a valid price (e.g., 10.99)");
          return;
@@ -57,27 +67,26 @@ $(document).ready(function () {
       };
 
       if (editMode) {
-         // Update logic
          const index = products.findIndex(p => p.productId === editId);
          products[index] = productData;
 
-         // Reset form state
          editMode = false;
          editId = null;
          $('#productId').prop('readonly', false);
          $('button[type="submit"]').text('Save Product').removeClass('btn-warning').addClass('btn-primary');
          alert("Product updated successfully!");
       } else {
-         // Add logic
          products.push(productData);
          alert("Product added to inventory!");
       }
 
+      // SYNC: Update the bridge after adding/updating
+      syncGlobalInventory();
       renderProducts(products);
       this.reset();
    });
 
-   // 4. Edit Functionality (Separate Button Logic)
+   // 4. Edit Functionality
    $(document).on('click', '.edit-product', function () {
       const id = $(this).data('id');
       const item = products.find(p => p.productId === id);
@@ -94,11 +103,14 @@ $(document).ready(function () {
       window.scrollTo(0, 0);
    });
 
-   // 5. Delete Functionality (Separate Button Logic)
+   // 5. Delete Functionality
    $(document).on('click', '.delete-product', function () {
       const id = $(this).data('id');
       if (confirm(`Are you sure you want to delete product ${id}?`)) {
          products = products.filter(p => p.productId !== id);
+         
+         // SYNC: Update the bridge after deleting
+         syncGlobalInventory();
          renderProducts(products);
       }
    });
@@ -151,7 +163,6 @@ $(document).ready(function () {
        }
    
        const cartData = JSON.stringify(cart);
-   
        localStorage.setItem('basketball_club_order', cartData);
    
        $.ajax({
